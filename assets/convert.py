@@ -1,7 +1,7 @@
 import os
 import argparse
 import re 
-from PIL import Image
+import cv2
 import numpy as np
 
 def get_image_files(image_path):
@@ -17,13 +17,28 @@ def get_image_files(image_path):
 def files_to_c_arr(root, image_paths): 
     frames = "static const unsigned char eyes[][16][16][3] = {\n"
     for image_path in image_paths:
-        img = Image.open(root + image_path).convert("RGB")
+
+        img = cv2.imread(root+image_path, cv2.IMREAD_UNCHANGED)
+
+        if img is None:
+            raise FileNotFoundError(f"Image not found: {image_path}")
         pixels = np.array(img)
         frames += "    {\n"
 
+
+    # If image has alpha channel
+        b, g, r, a = cv2.split(img)
+        alpha = a.astype(float) / 255.0
+
+        # Blend with black background
+        r = (r * alpha).astype(np.uint8)
+        g = (g * alpha).astype(np.uint8)
+        b = (b * alpha).astype(np.uint8)
+        rgb_img = cv2.merge((r, g, b))
+
         # Build the formatted string
         rows = []
-        for row in pixels:
+        for row in rgb_img:
             formatted_row = ",".join(f"{{0x{r:02X},0x{g:02X},0x{b:02X}}}" for r, g, b in row)
             rows.append(f"        {{{formatted_row}}},")
 

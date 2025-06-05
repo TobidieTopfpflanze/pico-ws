@@ -83,10 +83,10 @@ unsigned int WS_MATRIX::get_height()
 // Driver definition
 /* -------------------------------- */
 
-WS_DRIVER::WS_DRIVER(unsigned int pin)
+WS_DRIVER::WS_DRIVER(unsigned int pin, unsigned int width, unsigned int height)
 {
     this->pin = pin;
-    this->matrix = WS_MATRIX(16, 16);
+    this->matrix = WS_MATRIX(width, height);
     this->buffer = new unsigned char[this->matrix.get_size() * 3]; // 3 bytes per LED (RGB); if white, use 4 bytes
 
     gpio_init(this->pin);
@@ -161,4 +161,14 @@ void WS_DRIVER::ws_write_color(unsigned char color)
             ws_write_low();
         }
     }
+}
+
+unsigned int WS_DRIVER::get_width()
+{
+    return this->matrix.get_width();
+}
+
+unsigned int WS_DRIVER::get_height()
+{
+    return this->matrix.get_height();
 }
